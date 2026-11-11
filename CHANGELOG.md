@@ -9,3 +9,4 @@
 - Added portable plugin packaging, automated verification and manual evaluation scenarios.
 - Added phase-aware skill routing with explicit evidence and reuse of loaded instructions.
 - Added production guidance across all nine skills and three focused cross-skill playbooks.
+- Added opt-in local run history that connects assistant decisions to runner observations.

@@ -254,11 +254,15 @@ class RunReportTests(TemporaryProjectTest):
     @unittest.skipUnless(shutil.which("php"), "PHP CLI unavailable")
     def test_report_cli_streams_and_saves_failed_check(self):
         self.write("broken.php", "<?php function ()")
-        snapshot = self.root / "report.json"
+        from run_log import events, record, start
+
+        run = start(self.root / "runs")
+        record(run, "assistant", "phase", "verify", "Check <tenant> behavior")
+        snapshot = run / "report.json"
         process = subprocess.run(
             [sys.executable, str(SCRIPTS / "quality_gate.py"), str(self.root),
              "--only", "lint", "--progress", "--color", "always", "--diagnostics",
-             "--report-json", str(snapshot), "--task", "<script>sample</script>",
+             "--run-log", str(run), "--report-json", str(snapshot), "--task", "<script>sample</script>",
              "--recommended", "phpstan-analysis", "--applied", "php-core=Checked syntax",
              "--next-step", "Fix the declaration"],
             capture_output=True,
@@ -275,10 +279,17 @@ class RunReportTests(TemporaryProjectTest):
         self.assertEqual(report["skills"]["recommended"], ["phpstan-analysis"])
         self.assertEqual(report["skills"]["applied"][0]["name"], "php-core")
 
+        timeline = events(run)
+        self.assertEqual(timeline[1]["source"], "assistant")
+        result = next(event for event in timeline if event["kind"] == "check_result")
+        self.assertEqual(result["source"], "runner")
+        self.assertEqual(result["check"]["status"], "fail")
+        self.assertNotIn("stderr", result["check"])
+
         def render_as(format):
             result = subprocess.run(
                 [sys.executable, str(SCRIPTS / "run_report.py"), str(snapshot),
-                 "--format", format, "--color", "never"],
+                 "--run-log", str(run), "--format", format, "--color", "never"],
                 check=True, capture_output=True,
             )
             return result.stdout.decode("utf-8")
@@ -286,6 +297,8 @@ class RunReportTests(TemporaryProjectTest):
         html = render_as("html")
         self.assertIn("&lt;script&gt;sample&lt;/script&gt;", html)
         self.assertNotIn("<script>", html)
+        self.assertIn("Check &lt;tenant&gt; behavior", html)
+        self.assertIn("Run history", render_as("markdown"))
         self.assertIn("Fix the declaration", render_as("markdown"))
         self.assertIn("1/9 skills applied", render_as("status"))
         self.assertNotIn("\x1b", render_as("status"))

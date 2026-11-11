@@ -36,3 +36,17 @@ In Claude Code's user settings, add or adapt the following setting. Use absolute
 ```
 
 Create the snapshot before enabling the command. The status line displays the latest saved snapshot when Claude Code refreshes it. Use a different report path for each project or concurrent session. The status command reads the report file and needs no access to the host transcript. Other clients can render the same JSON through a host-specific adapter or show the Markdown in their normal response. [Claude Code status line documentation](https://code.claude.com/docs/en/statusline)
+
+## Record a workflow across phases
+
+Opt in to a local run history when decisions or handoffs need to be reviewable. In PowerShell:
+
+```powershell
+$run = python skills/php-engineer/scripts/run_log.py start .php-engineer-runs
+python skills/php-engineer/scripts/run_log.py add $run phase implement --detail "The affected service and contract are known."
+python skills/php-engineer/scripts/run_log.py add $run applied php-core --detail "Checked compatibility with the supported PHP version."
+python skills/php-engineer/scripts/quality_gate.py . --only lint --run-log $run --report-json "$run/report.json"
+python skills/php-engineer/scripts/run_report.py "$run/report.json" --run-log $run --format html --output "$run/report.html"
+```
+
+Use the actual PHP project path for verification. Record recommendations, applied skills, references, decisions, handoffs, and blockers only when they affect the next action. Assistant entries and runner observations carry separate source labels. The runner records structured check outcomes without raw output. Use short redacted notes and avoid including prompts, credentials, source excerpts, or customer data. `run_log.py show $run` prints the ordered events as JSON. The Markdown report includes the history and HTML puts it under an expandable section. Each run has a unique directory and independently written event files. Keep the run directory out of version control.

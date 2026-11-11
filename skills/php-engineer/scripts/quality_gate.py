@@ -157,6 +157,7 @@ def main():
     parser.add_argument("--timeout", type=int, default=120, help="seconds per subprocess")
     parser.add_argument("--progress", action="store_true", help="stream check events to stderr")
     parser.add_argument("--color", choices=("auto", "always", "never"), default="auto")
+    parser.add_argument("--run-log", type=Path, help="record check events in an initialized run")
     parser.add_argument("--report-json", type=Path, help="write a live, replaceable report snapshot")
     parser.add_argument("--task", help="short task label for the report")
     parser.add_argument("--recommended", action="append", choices=sorted(SKILLS), default=[])
@@ -172,7 +173,7 @@ def main():
     try:
         config = load_config(root)
         project = inspect(root)
-        report = RunReport(root, project, args) if args.report_json or args.progress else None
+        report = RunReport(root, project, args) if args.report_json or args.progress or args.run_log else None
         results = []
         try:
             checks = iter_checks(root, args, config, project, report.begin) if report else iter_checks(

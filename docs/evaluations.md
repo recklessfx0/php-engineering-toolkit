@@ -34,3 +34,5 @@ Run with the updated toolkit and with the prior skill instructions using the sam
 | Add a new required field to a public API consumed by old clients | Identify the compatibility break, offer a compatible path or coexistence plan, verify old and new request behavior and authorization, and reconcile OpenAPI. |
 | Replace a field in a populated Laravel table with old workers still active | Sequence an additive change, compatible app and worker behavior, resumable backfill, reconciliation, and cleanup after old workers drain. Identify the recovery boundary. |
 | Diagnose a slow tenant endpoint whose serialization reads relationships | Capture a representative query and latency baseline, verify tenant isolation and response behavior, compare the same workload after the change, and label gaps in available evidence. |
+
+For an opt-in run history, check that an assistant-recorded phase and skill decision appear alongside runner-observed results in the Markdown and HTML reports. Confirm diagnostics stay out of the history.

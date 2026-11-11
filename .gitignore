@@ -5,3 +5,4 @@ __pycache__/
 vendor/
 /.claude/skills/
 /.php-engineer-run.json
+/.php-engineer-runs/

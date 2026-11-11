@@ -11,11 +11,8 @@ import sys
 import tempfile
 import time
 
-from route_task import ROUTES
+from run_log import SKILLS, clean, events, record
 
-SKILLS = {"php-engineer", "laravel-development"} | {
-    skill for route in ROUTES.values() for skill in route
-}
 STATUS = {
     "pass": ("Passed", "32", "🟢"),
     "fail": ("Failed", "31", "🔴"),
@@ -27,10 +24,6 @@ STATUS = {
     "partial": ("Verification incomplete", "33", "🟡"),
     "failed": ("Checks failed", "31", "🔴"),
 }
-
-
-def clean(value):
-    return re.sub(r"[\x00-\x1f\x7f-\x9f]", " ", str(value))
 
 
 def color_enabled(mode, stream):
@@ -72,6 +65,7 @@ def save(path, report):
 class RunReport:
     def __init__(self, root, project, args):
         self.path = args.report_json
+        self.run = getattr(args, "run_log", None)
         self.progress = args.progress
         self.color = color_enabled(args.color, sys.stderr)
         self.started = time.monotonic()
@@ -89,6 +83,10 @@ class RunReport:
             "elapsed_seconds": 0,
             "checks": [],
         }
+        if self.run:
+            if not self.run.is_dir():
+                raise ValueError("run directory is missing; initialize a run first")
+            self.data["run_id"] = self.run.resolve().name
         self.update()
 
     def update(self):
@@ -97,6 +95,8 @@ class RunReport:
             save(self.path, self.data)
 
     def begin(self, name):
+        if self.run:
+            record(self.run, "runner", "check_started", name)
         self.data["active_check"] = name
         self.update()
         if self.progress:
@@ -108,6 +108,9 @@ class RunReport:
                  if key in result}
         if entry["status"] in {"fail", "error"}:
             entry["baseline"] = "unknown"
+        if self.run and entry.get("reason") != "excluded by --only":
+            record(self.run, "runner", "check_result", entry["check"],
+                   f"{label(entry['status'])} · {evidence(entry)}", check=entry)
         self.data["checks"].append(entry)
         self.data["active_check"] = None
         self.update()
@@ -131,6 +134,8 @@ class RunReport:
         else:
             self.data["status"] = "complete"
         self.update()
+        if self.run:
+            record(self.run, "runner", "verification_finished", label(self.data["status"]))
         if self.progress:
             print(status_line(self.data, self.color), file=sys.stderr, flush=True)
 
@@ -185,6 +190,10 @@ def render(report, format, color=False):
     status = report["status"]
     task = report["task"]
     next_step = report.get("next_step")
+    timeline = [
+        (event["timestamp"], event["source"], event["kind"], event["subject"], event.get("detail", ""))
+        for event in report.get("timeline", [])
+    ]
     if format == "markdown":
         md = markdown_text
         rows = ["# PHP Engineer", "", f"**{STATUS[status][2]} {label(status)}** · {md(task)}",
@@ -198,6 +207,9 @@ def render(report, format, color=False):
                     f" | {md(evidence(item))} |" for item in checks)
         if next_step:
             rows.extend(["", f"**Next step:** {md(next_step)}"])
+        if timeline:
+            rows.extend(["", "## Run history", ""])
+            rows.extend("- " + " · ".join(md(value) for value in event if value) for event in timeline)
         rows.extend(["", f"Available skills: {md(available)}"])
         return "\n".join(rows) + "\n"
 
@@ -208,6 +220,9 @@ def render(report, format, color=False):
         f"<tr><th scope='row'>{esc(item['check'])}</th>"
         f"<td><span class='{item['status']}'>{label(item['status'])}</span></td>"
         f"<td>{esc(evidence(item))}</td></tr>" for item in checks
+    )
+    history = "".join(
+        "<li>" + " · ".join(esc(value) for value in event if value) + "</li>" for event in timeline
     )
     return f"""<!doctype html>
 <html lang="en">
@@ -244,6 +259,7 @@ td span, .outcome {{ font-weight: 650; }}
 <table><thead><tr><th scope="col">Check</th><th scope="col">Status</th><th scope="col">Evidence</th></tr></thead>
 <tbody>{table}</tbody></table>
 {f"<p><strong>Next step:</strong> {esc(next_step)}</p>" if next_step else ""}
+{f"<details><summary>Run history</summary><ol>{history}</ol></details>" if history else ""}
 </main>
 </html>
 """
@@ -253,6 +269,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("report", type=Path)
     parser.add_argument("--format", choices=("markdown", "html", "status"), default="markdown")
+    parser.add_argument("--run-log", type=Path, help="include the latest local run history")
     parser.add_argument("--output", type=Path, help="create a UTF-8 file instead of printing")
     parser.add_argument("--color", choices=("auto", "always", "never"), default="auto")
     args = parser.parse_args()
@@ -261,6 +278,10 @@ def main():
             report = json.load(source)
         if report["schema_version"] != 1:
             raise ValueError("unsupported run report version")
+        if args.run_log:
+            if report.get("run_id") != args.run_log.resolve().name:
+                raise ValueError("report snapshot belongs to a different run")
+            report["timeline"] = events(args.run_log)
         output = render(report, args.format, color_enabled(args.color, sys.stdout))
         if args.output:
             with args.output.open("x", encoding="utf-8") as destination:
