@@ -1,0 +1,14 @@
+name: Execution safety
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  execution-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m unittest discover -s tests -v -k GateTests
+      - run: python skills/php-engineer/scripts/quality_gate.py tests/fixtures/review --only lint

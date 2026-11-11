@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "framework": {
+      "type": "string",
+      "enum": [
+        "auto",
+        "plain-php",
+        "laravel",
+        "symfony"
+      ]
+    },
+    "php_version": {
+      "type": "string",
+      "enum": [
+        "auto",
+        "8.0",
+        "8.1",
+        "8.2",
+        "8.3",
+        "8.4",
+        "8.5"
+      ]
+    },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "phpstan_level": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "run_tests": {
+          "type": "boolean"
+        },
+        "run_static_analysis": {
+          "type": "boolean"
+        },
+        "check_formatting": {
+          "type": "boolean"
+        },
+        "security_review": {
+          "type": "boolean"
+        }
+      }
+    },
+    "automation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "auto_fix": {
+          "type": "string",
+          "enum": [
+            "safe",
+            "off"
+          ]
+        },
+        "dependency_installation": {
+          "type": "string",
+          "enum": [
+            "ask",
+            "deny"
+          ]
+        },
+        "destructive_actions": {
+          "type": "string",
+          "enum": [
+            "deny"
+          ]
+        }
+      }
+    },
+    "reporting": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "include_summary": {
+          "type": "boolean"
+        },
+        "include_failures": {
+          "type": "boolean"
+        },
+        "include_recommendations": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "framework": "auto",
+  "php_version": "auto",
+  "quality": {
+    "phpstan_level": 6,
+    "run_tests": true,
+    "run_static_analysis": true,
+    "check_formatting": true,
+    "security_review": true
+  },
+  "automation": {
+    "auto_fix": "safe",
+    "dependency_installation": "ask",
+    "destructive_actions": "deny"
+  },
+  "reporting": {
+    "include_summary": true,
+    "include_failures": true,
+    "include_recommendations": true
+  }
+}
