@@ -7,3 +7,5 @@
 - Added Claude Code and shared Agent Skills installation, plus Markdown export for chat and API assistants.
 - Added structured run reports, live terminal progress, and Markdown, HTML, and status-line views.
 - Added portable plugin packaging, automated verification and manual evaluation scenarios.
+- Added phase-aware skill routing with explicit evidence and reuse of loaded instructions.
+- Added production guidance across all nine skills and three focused cross-skill playbooks.

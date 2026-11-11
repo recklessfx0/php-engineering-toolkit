@@ -38,7 +38,7 @@ Export the workflows you need as a Markdown prompt.
 python scripts/export_prompt.py php-engineer phpstan-analysis --output php-workflow.md
 ```
 
-Paste the file into a chat, upload it if attachments are supported, or include its contents in an API instruction message. Replace the task placeholder with your request and relevant project context. Without repository or shell access, supply the relevant files or run checks locally and share redacted output.
+Paste the file into a chat, upload it if attachments are supported, or include its contents in an API instruction message. Replace the task placeholder with your request and relevant project context. For a production scenario, include the matching playbook from `skills/php-engineer/references/` with your prompt. Without repository or shell access, supply the relevant files or run checks locally and share redacted output.
 
 ## Plugin distribution
 

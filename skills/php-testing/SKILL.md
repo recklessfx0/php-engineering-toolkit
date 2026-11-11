@@ -5,4 +5,4 @@ description: "Add or diagnose PHPUnit and Pest tests for PHP behavior, Laravel f
 
 # php-testing
 
-Find the installed framework, runner configuration and suite conventions. Verify database and external service isolation before running suites. Reproduce failures with the smallest relevant existing test invocation. Follow [test design](references/workflow.md) when selecting coverage.
+Locate the existing test entry point, suite configuration and isolation boundaries. Open [test design](references/workflow.md) for integration, flaky failures or retries. Close with commands, observed results and the important behavior that the tests cover.

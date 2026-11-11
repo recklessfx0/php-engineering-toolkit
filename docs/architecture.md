@@ -15,7 +15,14 @@ The project inspector reads Composer requirements, lockfile and installed packag
 | testing | PHP testing | |
 | security | Security audit | |
 
-The router accepts explicit categories and emits ordered, deduplicated skill names. The current agent classifies the prompt and uses the shortlist to read relevant instructions. There is no subagent dispatch or Codex service dependency.
+The table describes the broad shortlist returned without `--phase`. The coordinator prefers phase routing, which accepts one category and the current phase. It emits a reason and a `load` or `reuse` action for each recommendation. The assistant infers the phase from the request, working tree and relevant code or diagnostics. The router uses those explicit inputs and does not dispatch agents.
+
+```sh
+python skills/php-engineer/scripts/route_task.py api --framework laravel --phase implement --need security-boundary --loaded api-development
+python skills/php-engineer/scripts/route_task.py api --framework laravel --phase verify
+```
+
+The first command reuses API development and suggests security review for the changed boundary. The second recommends no specialist for routine verification. If an analyzer reports a finding that needs investigation, rerun with `--need analysis-finding` or switch the current category to `analysis`.
 
 The runner lints PHP without loading php.ini. Tests, static analysis and formatting can load project code even in check modes. They require a trusted checkout. Composer audit additionally needs a lockfile and explicit network opt-in. Timeout applies per subprocess. The runner is a convenience layer and provides no isolation from processes launched by trusted tools. Compare pre-change and post-change diagnostics under the same settings to attribute regressions.
 

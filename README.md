@@ -38,6 +38,8 @@ See [installation](docs/installation.md) for supported paths, updates and Codex 
 | `php-refactoring` | Restructure code while preserving behavior |
 | `php-performance` | Measure and diagnose latency, queries, memory and I/O |
 
+For production changes, the coordinator has focused playbooks for public API compatibility, rolling schema migrations, and slow tenant-scoped endpoints.
+
 Try `$php-engineer Add pagination to the orders endpoint and verify access control and contract compatibility`, or invoke `$phpstan-analysis` directly for a focused diagnostic task.
 
 ## Run the helpers
@@ -46,7 +48,7 @@ From the toolkit checkout:
 
 ```sh
 python skills/php-engineer/scripts/inspect_project.py examples/laravel
-python skills/php-engineer/scripts/route_task.py api --framework laravel
+python skills/php-engineer/scripts/route_task.py api --framework laravel --phase implement
 python skills/php-engineer/scripts/quality_gate.py examples/plain-php --only lint
 python scripts/validate_skills.py
 python -m unittest discover -s tests -v

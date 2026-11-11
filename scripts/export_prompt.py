@@ -1,6 +1,7 @@
 """Render selected PHP engineering instructions for an assistant without skill discovery."""
 import argparse
 from pathlib import Path
+import re
 import sys
 
 from validate_skills import HEADER, REQUIRED, ROOT
@@ -24,7 +25,7 @@ def render(skills):
             raise ValueError(f"Invalid skill metadata: {name}")
         body = source[header.end():].strip()
         reference = (directory / "references/workflow.md").read_text(encoding="utf-8").strip()
-        sections.extend((body.replace("](references/workflow.md)", "]"), reference))
+        sections.extend((re.sub(r"\]\(references/[^)]+\)", "]", body), reference))
     sections.append("## Task and project context\n\n[Add your request and relevant code or diagnostics here.]")
     return "\n\n".join(sections) + "\n"
 

@@ -5,4 +5,4 @@ description: "Review PHP and Laravel code for security weaknesses and recommend 
 
 # security-audit
 
-Trace trust boundaries from reachable routes through guards, authorization, validation, data access and output. Review only relevant [security checks](references/workflow.md). Report severity, redacted evidence with code location, affected preconditions, impact, mitigation and defensive verification. Keep assessments scoped to reviewed code and checks.
+Start with the changed entry point, identity, protected action, and data scope. Open [security checks](references/workflow.md) for the affected boundaries. Close with severity, redacted code evidence, preconditions, impact, mitigation, and defensive verification.

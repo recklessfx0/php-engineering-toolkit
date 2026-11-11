@@ -5,4 +5,4 @@ description: "Refactor PHP or Laravel internals in small steps while preserving 
 
 # php-refactoring
 
-Trace callers, public contracts and side effects before editing. Capture behavior with focused existing tests or characterization coverage when needed. Use [refactoring checks](references/workflow.md) to choose and verify the smallest structural change.
+Trace callers, public contracts and side effects. Open [refactoring checks](references/workflow.md) when the change crosses module boundaries, affects persisted state, or requires a compatibility window. Close with baseline and post-change behavior evidence for affected callers.

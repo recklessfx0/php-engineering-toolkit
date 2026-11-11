@@ -5,4 +5,4 @@ description: "Design, extend or repair PHP REST endpoints with compatible contra
 
 # api-development
 
-Trace adjacent routes, request and response contracts, auth, rate limits and OpenAPI definitions. Preserve established status codes, error shapes and pagination semantics. Read [contract decisions](references/workflow.md) before changing filters, authentication or public schemas.
+Inspect the published contract, adjacent endpoint behavior and known consumers. Open [contract decisions](references/workflow.md) for public schema, retries, pagination or authorization changes. Close with observed contract and access-control evidence and identify any consumer rollout work.

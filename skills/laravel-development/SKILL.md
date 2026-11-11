@@ -5,4 +5,4 @@ description: "Implement Laravel application features involving Eloquent, request
 
 # laravel-development
 
-Use the locked or installed Laravel version and nearby code to locate the app's registration points. Trace route, middleware, policy, request validation, persistence and response. Keep orchestration and business rules at the project's existing boundaries. Review [framework decisions](references/workflow.md) for the subsystems touched.
+Inspect the locked Laravel version and the affected route, service, job, or migration. Open [framework decisions](references/workflow.md) for transactions, shared cache, or rolling deploys. Close with feature or integration evidence for the affected path and identify rollout dependencies when old and new processes overlap.

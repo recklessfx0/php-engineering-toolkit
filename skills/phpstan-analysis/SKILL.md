@@ -5,4 +5,4 @@ description: "Diagnose and fix PHPStan or Larastan findings while preserving PHP
 
 # phpstan-analysis
 
-Inspect Composer versions, analysis configuration, included baselines and CI arguments. Run the existing invocation on relevant paths, then verify the full configured scope when feasible. Read [diagnostic workflow](references/workflow.md) before adding assertions, generics or ignores.
+Read the current finding, installed analyzer versions, config and baseline inclusion. Open [diagnostic workflow](references/workflow.md) when interpreting types, generics or baseline changes. Close by rerunning the targeted check and accounting for new or unresolved findings under comparable settings.

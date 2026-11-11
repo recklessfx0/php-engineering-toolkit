@@ -16,7 +16,7 @@ from export_prompt import render
 from inspect_project import inspect
 from install_skills import install
 from quality_gate import check, gate
-from route_task import route
+from route_task import route, route_phase
 from validate_skills import validate
 
 
@@ -143,6 +143,44 @@ class ToolkitTests(TemporaryProjectTest):
             "api-development", "laravel-development", "php-testing",
             "security-audit", "phpstan-analysis",
         })
+
+
+    def test_phase_routes_coordinator_only_without_specialist_work(self):
+        for phase in ("discover", "verify", "report"):
+            with self.subTest(phase=phase):
+                self.assertEqual(route_phase("api", "laravel", phase)["skills"], [])
+        self.assertEqual(route_phase("refactor", "laravel", "verify")["skills"], [])
+
+    def test_phase_routes_only_evidence_and_reuses_loaded_skill(self):
+        result = route_phase("api", "laravel", "implement",
+                             ["api-contract", "security-boundary", "security-boundary"],
+                             ["api-development"])
+        self.assertEqual(
+            [(item["name"], item["action"]) for item in result["skills"]],
+            [("api-development", "reuse"), ("security-audit", "load")],
+        )
+        self.assertTrue(all(item["reason"] for item in result["skills"]))
+
+    def test_phase_diagnoses_failures_and_defers_inapplicable_needs(self):
+        result = route_phase("analysis", "laravel", "verify",
+                             ["framework-wiring", "analysis-finding", "php-compatibility"])
+        self.assertEqual([item["name"] for item in result["skills"]],
+                         ["phpstan-analysis", "laravel-development"])
+        self.assertEqual(result["deferred_needs"], ["php-compatibility"])
+        symfony = route_phase("framework", "symfony", "implement", ["framework-wiring"])
+        self.assertEqual([item["name"] for item in symfony["skills"]], ["php-core"])
+        self.assertEqual(symfony["deferred_needs"], ["framework-wiring"])
+
+    def test_phase_cli_keeps_legacy_output_and_rejects_multiple_categories(self):
+        command = [sys.executable, str(SCRIPTS / "route_task.py")]
+        legacy = subprocess.run(command + ["analysis"], check=True, capture_output=True)
+        self.assertEqual(json.loads(legacy.stdout), ["phpstan-analysis", "php-core"])
+        phase = subprocess.run(command + ["api", "--phase", "verify", "--need", "analysis-finding"],
+                               check=True, capture_output=True)
+        self.assertEqual(json.loads(phase.stdout)["skills"][0]["name"], "phpstan-analysis")
+        invalid = subprocess.run(command + ["api", "core", "--phase", "design"],
+                                 capture_output=True)
+        self.assertEqual(invalid.returncode, 2)
 
 
 class GateTests(TemporaryProjectTest):

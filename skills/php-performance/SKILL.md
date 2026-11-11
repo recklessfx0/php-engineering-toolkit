@@ -5,4 +5,4 @@ description: "Diagnose slow PHP or Laravel paths using query, latency, memory, q
 
 # php-performance
 
-Identify the operation, dataset, load and environment. Capture a baseline and identify the dominant cost before changing code. Use [measurement and tradeoffs](references/workflow.md) to select a change and repeat the measurement.
+Identify the slow operation and capture representative evidence. Open [measurement and tradeoffs](references/workflow.md) for workload design, query changes or caching. Close with comparable measurements, any behavior checks, and remaining uncertainty.
