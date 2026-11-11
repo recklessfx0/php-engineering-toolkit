@@ -1,6 +1,6 @@
 # Agent behavior evaluations
 
-Install the skills and start a fresh Codex session for each scenario. Open the toolkit checkout as the workspace. Ask for review only unless the scenario explicitly asks to implement a change. Record the toolkit revision, client/model, selected skills, files read, checks attempted and pass or fail for each criterion. These manual evaluations are separate from deterministic tests.
+Install the skills and start a fresh assistant session for each scenario. Open the toolkit checkout as the workspace. Use the host invocation in the installation guide or export the named skill and paste its text into a chat. Ask for review only unless the scenario explicitly asks to implement a change. Record the toolkit revision, client/model, selected skills, files read, checks attempted and pass or fail for each criterion. These manual evaluations are separate from deterministic tests.
 
 | Prompt | Pass criteria |
 | --- | --- |

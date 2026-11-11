@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "skills/php-engineer/scripts"
 sys.path[:0] = [str(SCRIPTS), str(ROOT / "scripts")]
 from configuration import load_config
+from export_prompt import render
 from inspect_project import inspect
 from install_skills import install
 from quality_gate import check, gate
@@ -56,6 +57,41 @@ class ToolkitTests(TemporaryProjectTest):
         self.assertEqual(json.loads(completed.stdout)["framework"], "unknown")
         with self.assertRaisesRegex(ValueError, "Existing destinations"):
             install(destination)
+
+    def test_install_cli_host_paths(self):
+        for host in ("shared", "claude", "codex", "gemini", "copilot"):
+            with self.subTest(host=host):
+                project = self.root / host
+                project.mkdir()
+                subprocess.run(
+                    [sys.executable, str(ROOT / "scripts/install_skills.py"),
+                     "--host", host, "--repo", str(project)],
+                    check=True, capture_output=True,
+                )
+                namespace = ".claude" if host == "claude" else ".agents"
+                skill = project / namespace / "skills/php-engineer"
+                self.assertTrue((skill / "SKILL.md").is_file())
+                self.assertTrue((skill / "scripts/quality_gate.py").is_file())
+
+    def test_prompt_export_is_selective(self):
+        prompt = render(["php-engineer", "api-development", "api-development"])
+        self.assertIn("## Task and project context", prompt)
+        self.assertIn("bound page sizes", prompt)
+        self.assertEqual(prompt.count("# api-development workflow"), 1)
+        self.assertNotIn("# php-performance workflow", prompt)
+        self.assertNotIn("](references/", prompt)
+        with self.assertRaises(ValueError):
+            render(["../README"])
+
+    def test_prompt_export_does_not_overwrite(self):
+        output = self.write("prompt.md", "Keep this")
+        result = subprocess.run(
+            [sys.executable, str(ROOT / "scripts/export_prompt.py"),
+             "php-core", "--output", str(output)],
+            capture_output=True,
+        )
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(output.read_text(encoding="utf-8"), "Keep this")
 
     def test_project_examples(self):
         php = inspect(ROOT / "examples/plain-php")

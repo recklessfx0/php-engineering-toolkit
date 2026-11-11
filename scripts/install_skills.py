@@ -1,9 +1,18 @@
-"""Copy self-contained skill folders into an explicit .agents/skills destination."""
+"""Install self-contained Agent Skills into a supported host discovery directory."""
 import argparse
 from pathlib import Path
 import shutil
 
 from validate_skills import ROOT, validate
+
+
+HOST_DIRECTORIES = {
+    "shared": ".agents/skills",
+    "codex": ".agents/skills",
+    "claude": ".claude/skills",
+    "gemini": ".agents/skills",
+    "copilot": ".agents/skills",
+}
 
 
 def install(destination):
@@ -28,11 +37,13 @@ def main():
     scope = parser.add_mutually_exclusive_group(required=True)
     scope.add_argument("--user", action="store_true")
     scope.add_argument("--repo", type=Path)
+    parser.add_argument("--host", choices=HOST_DIRECTORIES, default="shared",
+                        help="choose a discovery directory (default: shared)")
     args = parser.parse_args()
     root = Path.home() if args.user else args.repo.resolve()
     if not root.is_dir():
         parser.error("target directory must exist")
-    destination = root / ".agents/skills"
+    destination = root / HOST_DIRECTORIES[args.host]
     try:
         names = install(destination)
     except (OSError, ValueError) as error:

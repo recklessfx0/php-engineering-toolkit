@@ -1,17 +1,28 @@
-# PHP Engineering Toolkit for Codex
+# PHP Engineering Toolkit
 
-Nine skills for implementing, reviewing and verifying changes in PHP projects. The toolkit includes a read-only Composer project inspector, a task router and a configurable quality gate. The Python helpers use the standard library.
+Nine Agent Skills for implementing, reviewing and verifying changes in PHP projects with Claude Code, Codex, Gemini CLI, and GitHub Copilot. The toolkit includes a read-only Composer project inspector, a task router and a configurable quality gate. The Python helpers use the standard library.
 
 ## Install
 
-From a checkout of this toolkit, run either command with Python 3.10 or newer.
+From the toolkit checkout, run the command for your host with Python 3.10+.
 
 ```sh
+# Claude Code
+python scripts/install_skills.py --host claude --repo /path/to/php-project
+
+# Codex, Gemini CLI, and supported Copilot surfaces
 python scripts/install_skills.py --repo /path/to/php-project
-python scripts/install_skills.py --user
 ```
 
-Open the PHP project in Codex CLI or the Codex IDE extension and select `$php-engineer`. Repository scope installs into the target project's `.agents/skills`. User scope installs into your home directory's `.agents/skills`. See [installation](docs/installation.md) for updates and plugin packaging.
+Open the PHP project and ask the assistant to use `php-engineer`. Use `/php-engineer` in Claude Code or `$php-engineer` in Codex. Replace `--repo /path/to/php-project` with `--user` for personal installation.
+
+For a chat or API assistant, export a Markdown prompt and include it with your task.
+
+```sh
+python scripts/export_prompt.py php-engineer api-development --output php-workflow.md
+```
+
+See [installation](docs/installation.md) for supported paths, updates and Codex plugin packaging.
 
 ## Skills
 
@@ -46,7 +57,7 @@ For a trusted checkout with local tools installed and test services isolated, ad
 ## Repository map
 
 - `skills/` contains canonical skill folders, references and the coordinator's self-contained helpers and configuration.
-- `scripts/` contains the installer and repository validator.
+- `scripts/` contains the installer, prompt exporter and repository validator.
 - `tests/` contains deterministic tests and review fixtures. [Agent evaluations](docs/evaluations.md) are run separately.
 - `examples/` contains plain PHP and Laravel inspection samples.
 - `plugin.json` is the portable skills-only plugin manifest.

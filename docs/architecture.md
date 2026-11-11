@@ -21,6 +21,6 @@ The runner lints PHP without loading php.ini. Tests, static analysis and formatt
 
 ## Research and attribution
 
-Skill discovery and portable packaging follow official OpenAI documentation. [Build skills](https://learn.chatgpt.com/docs/build-skills), [Package your plugin](https://developers.openai.com/plugins/build/plugins)
+The canonical workflows use the Agent Skills standard. The installer selects a host discovery path and the prompt exporter combines selected instructions with their references. The plugin manifest follows official OpenAI packaging documentation. [Build skills](https://learn.chatgpt.com/docs/build-skills), [Package your plugin](https://developers.openai.com/plugins/build/plugins)
 
 Jeffallan's MIT-licensed collection was reviewed as a reference for specialist skill organization and progressive disclosure. This toolkit's content and scripts were authored independently. [Jeffallan/claude-skills](https://github.com/Jeffallan/claude-skills)

@@ -1,6 +1,6 @@
 # Troubleshooting
 
-- **Skill missing**. Check that the folder containing `SKILL.md` sits directly under `.agents/skills`, open the project in Codex and restart the client if needed.
+- **Skill missing**. Check that the folder containing `SKILL.md` sits directly under the discovery directory for your host, open the target project and restart the client if needed.
 - **Duplicate skill**. Check both scopes and any installed plugins for a second copy.
 - **Python command unavailable**. Use the path to a Python 3.10+ interpreter, or try `python3` on Unix or `py -3` on Windows.
 - **Unexpected PHP lint failure**. Compare `php -v` with the Composer platform and deployment runtime. The runner uses PHP CLI from PATH.

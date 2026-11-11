@@ -1,7 +1,7 @@
 # Publishing and releasing
 
 1. Review the license holder attribution and enable private vulnerability reporting in the GitHub repository settings.
-2. Run `python scripts/validate_skills.py` and `python -m unittest discover -s tests -v`. Smoke-test local skill discovery in CLI and the IDE, then test plugin installation from a local marketplace.
+2. Run `python scripts/validate_skills.py` and `python -m unittest discover -s tests -v`. Smoke-test local skill discovery in Claude Code, Codex, Gemini CLI and Copilot, then test Codex plugin installation from a local marketplace. Try a Markdown export in a chat assistant.
 3. Create an empty public GitHub repository named `php-engineering-toolkit`. Copy its actual Git URL and use it in the command below.
 4. Review the staged files and commit, then push.
 
