@@ -8,6 +8,7 @@ import subprocess
 
 from configuration import load_config
 from inspect_project import inspect
+from run_report import RunReport, SKILLS
 
 CHECKS = ("lint", "analysis", "tests", "format", "audit")
 EXCLUDED = {".git", "vendor", "node_modules", "storage"}
@@ -55,9 +56,12 @@ def check(root, name, command, timeout, diagnostics):
 
 
 def gate(root, args, config):
+    return list(iter_checks(root, args, config, inspect(root)))
+
+
+def iter_checks(root, args, config, project, begin=lambda name: None):
     quality = config["quality"]
     php = shutil.which("php")
-    project = inspect(root)
     requested = set(args.only or CHECKS)
     enabled = {
         "lint": True, "analysis": quality["run_static_analysis"], "tests": quality["run_tests"],
@@ -95,7 +99,6 @@ def gate(root, args, config):
         "audit": [*composer_command, "--no-plugins", "--no-scripts", "--no-interaction",
                   "audit", "--locked"] if composer_command and local_file(root, "composer.lock") else None,
     }
-    results = []
     for name in CHECKS:
         reason = None
         status = "skipped"
@@ -110,35 +113,38 @@ def gate(root, args, config):
             count = 0
             failures = []
             for path in php_files(root):
+                if not count:
+                    begin(name)
                 count += 1
                 result = check(root, name, [php, "-n", "-l", path], args.timeout, args.diagnostics)
                 if result["status"] != "pass":
                     result["path"] = str(Path(path).relative_to(root))
                     failures.append(result)
             if failures:
-                results.extend(failures)
+                yield from failures
                 continue
             if count:
-                results.append({"check": name, "status": "pass", "files": count})
+                yield {"check": name, "status": "pass", "files": count}
                 continue
             reason = "no PHP files found"
         elif name != "lint" and commands[name]:
-            results.append(check(root, name, commands[name], args.timeout, args.diagnostics))
+            begin(name)
+            yield check(root, name, commands[name], args.timeout, args.diagnostics)
             continue
         else:
             status = "unavailable"
             reason = "required executable, local tool, or lockfile missing"
-        results.append({"check": name, "status": status, "reason": reason})
+        yield {"check": name, "status": status, "reason": reason}
 
     if args.custom:
         if not args.trusted:
-            results.append({"check": "custom", "status": "skipped", "reason": "requires --trusted"})
+            yield {"check": "custom", "status": "skipped", "reason": "requires --trusted"}
         else:
             executable = Path(args.custom[0])
             if not executable.is_absolute() or executable.suffix.lower() in {".bat", ".cmd", ".ps1"}:
                 raise ValueError("Custom checks require an absolute executable path and an argument vector")
-            results.append(check(root, "custom", args.custom, args.timeout, args.diagnostics))
-    return results
+            begin('custom')
+            yield check(root, 'custom', args.custom, args.timeout, args.diagnostics)
 
 
 def main():
@@ -149,6 +155,13 @@ def main():
     parser.add_argument("--network", action="store_true")
     parser.add_argument("--diagnostics", action="store_true", help="include raw tool output locally")
     parser.add_argument("--timeout", type=int, default=120, help="seconds per subprocess")
+    parser.add_argument("--progress", action="store_true", help="stream check events to stderr")
+    parser.add_argument("--color", choices=("auto", "always", "never"), default="auto")
+    parser.add_argument("--report-json", type=Path, help="write a live, replaceable report snapshot")
+    parser.add_argument("--task", help="short task label for the report")
+    parser.add_argument("--recommended", action="append", choices=sorted(SKILLS), default=[])
+    parser.add_argument("--applied", action="append", default=[], metavar="SKILL=NOTE")
+    parser.add_argument("--next-step", help="outstanding work to include in the report")
     parser.add_argument("--custom", nargs=argparse.REMAINDER, help="absolute executable and argv, last option")
     args = parser.parse_args()
     root = args.project.resolve()
@@ -157,7 +170,23 @@ def main():
     if not root.is_dir() or args.timeout < 1:
         parser.error("provide a project directory and a positive timeout")
     try:
-        results = gate(root, args, load_config(root))
+        config = load_config(root)
+        project = inspect(root)
+        report = RunReport(root, project, args) if args.report_json or args.progress else None
+        results = []
+        try:
+            checks = iter_checks(root, args, config, project, report.begin) if report else iter_checks(
+                root, args, config, project)
+            for result in checks:
+                results.append(result)
+                if report:
+                    report.record(result)
+        except (Exception, KeyboardInterrupt):
+            if report:
+                report.finish(interrupted=True)
+            raise
+        if report:
+            report.finish()
     except (OSError, ValueError, RecursionError) as error:
         parser.error(str(error))
     print(json.dumps(results, indent=2))

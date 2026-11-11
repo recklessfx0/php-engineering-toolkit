@@ -52,7 +52,7 @@ python scripts/validate_skills.py
 python -m unittest discover -s tests -v
 ```
 
-For a trusted checkout with local tools installed and test services isolated, add `--trusted`. Composer advisory lookup also requires `--network`. Each check reports its own outcome. See [configuration](docs/configuration.md) for the schema, exit codes and output options.
+For a trusted checkout with local tools installed and test services isolated, add `--trusted`. Composer advisory lookup also requires `--network`. Each check reports its own outcome. See [run reports](docs/reporting.md) for live terminal progress, Markdown and HTML summaries, and the Claude Code status line. See [configuration](docs/configuration.md) for the schema, exit codes and output options.
 
 ## Repository map
 

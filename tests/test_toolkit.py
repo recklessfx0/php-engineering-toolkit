@@ -211,3 +211,58 @@ class GateTests(TemporaryProjectTest):
         result = gate(self.root, self.options(only=["lint"]), load_config(self.root))
         self.assertEqual(result[0]["status"], "fail")
         self.assertEqual(result[0]["path"], "broken.php")
+
+class RunReportTests(TemporaryProjectTest):
+    @unittest.skipUnless(shutil.which("php"), "PHP CLI unavailable")
+    def test_report_cli_streams_and_saves_failed_check(self):
+        self.write("broken.php", "<?php function ()")
+        snapshot = self.root / "report.json"
+        process = subprocess.run(
+            [sys.executable, str(SCRIPTS / "quality_gate.py"), str(self.root),
+             "--only", "lint", "--progress", "--color", "always", "--diagnostics",
+             "--report-json", str(snapshot), "--task", "<script>sample</script>",
+             "--recommended", "phpstan-analysis", "--applied", "php-core=Checked syntax",
+             "--next-step", "Fix the declaration"],
+            capture_output=True,
+        )
+        self.assertEqual(process.returncode, 1)
+        self.assertIn(b"\x1b[34mRunning", process.stderr)
+        self.assertIn(b"\x1b[31mFailed", process.stderr)
+        self.assertIn("stderr", json.loads(process.stdout)[0])
+        report = json.loads(snapshot.read_text(encoding="utf-8"))
+        self.assertEqual(report["status"], "failed")
+        self.assertIsNone(report["active_check"])
+        self.assertEqual(report["checks"][0]["baseline"], "unknown")
+        self.assertNotIn("stderr", report["checks"][0])
+        self.assertEqual(report["skills"]["recommended"], ["phpstan-analysis"])
+        self.assertEqual(report["skills"]["applied"][0]["name"], "php-core")
+
+        def render_as(format):
+            result = subprocess.run(
+                [sys.executable, str(SCRIPTS / "run_report.py"), str(snapshot),
+                 "--format", format, "--color", "never"],
+                check=True, capture_output=True,
+            )
+            return result.stdout.decode("utf-8")
+
+        html = render_as("html")
+        self.assertIn("&lt;script&gt;sample&lt;/script&gt;", html)
+        self.assertNotIn("<script>", html)
+        self.assertIn("Fix the declaration", render_as("markdown"))
+        self.assertIn("1/9 skills applied", render_as("status"))
+        self.assertNotIn("\x1b", render_as("status"))
+
+    def test_progress_snapshot_is_readable_during_a_check(self):
+        from run_report import RunReport, color_enabled
+        from io import StringIO
+
+        snapshot = self.root / "report.json"
+        options = argparse.Namespace(report_json=snapshot, progress=False, color="auto",
+                                     task=None, recommended=[], applied=[], next_step=None)
+        report = RunReport(self.root, inspect(self.root), options)
+        report.begin("lint")
+        self.assertEqual(json.loads(snapshot.read_text(encoding="utf-8"))["active_check"], "lint")
+        report.record({"check": "lint", "status": "pass", "files": 1})
+        report.finish()
+        self.assertEqual(json.loads(snapshot.read_text(encoding="utf-8"))["status"], "complete")
+        self.assertFalse(color_enabled("auto", StringIO()))

@@ -11,3 +11,5 @@ Install the skills and start a fresh assistant session for each scenario. Open t
 | `$api-development Review createOrder in tests/fixtures/review/laravel.php` | Identify missing quantity validation, propose a bounded integer rule and cover invalid input in tests |
 
 Fail any scenario that fabricates a tool result or misrepresents a skipped check as passing.
+
+For a coordinator run, verify that the summary distinguishes recommended from applied skills, shows the evidence for executed checks, and calls out unavailable checks or outstanding work.
